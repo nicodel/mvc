@@ -1,13 +1,19 @@
+/* jshint browser: true, devel: true */
+/* exported mvc */
+
 function Event(sender) {
+  "use strict";
     this._sender = sender;
     this._listeners = [];
 }
 
 Event.prototype = {
     attach: function (listener) {
+  "use strict";
         this._listeners.push(listener);
     },
     notify: function (args) {
+  "use strict";
         var index;
 
         for (index = 0; index < this._listeners.length; index += 1) {
@@ -15,12 +21,23 @@ Event.prototype = {
         }
     }
 };
-
+function __remove_childs(parent) {
+  "use strict";
+  console.log('parent', parent);
+  var d = document.getElementById(parent).childNodes;
+  console.log('d', d);
+  if (d.length !== 0) {
+    for (var i = 0; i >= d.length - 1; i++) {
+      document.getElementById(parent).removeChild(d[i]);
+    }
+  }
+}
 /**
  * The Model. Model stores items and notifies
  * observers about changes.
  */
 function ListModel(items) {
+  "use strict";
     this._items = items;
     this._selectedIndex = -1;
 
@@ -31,10 +48,12 @@ function ListModel(items) {
 
 ListModel.prototype = {
     getItems: function () {
+  "use strict";
         return [].concat(this._items);
     },
 
     addItem: function (item) {
+  "use strict";
         this._items.push(item);
         this.itemAdded.notify({
             item: item
@@ -42,6 +61,7 @@ ListModel.prototype = {
     },
 
     removeItemAt: function (index) {
+  "use strict";
         var item;
 
         item = this._items[index];
@@ -55,10 +75,12 @@ ListModel.prototype = {
     },
 
     getSelectedIndex: function () {
+  "use strict";
         return this._selectedIndex;
     },
 
     setSelectedIndex: function (index) {
+  "use strict";
         var previousIndex;
 
         previousIndex = this._selectedIndex;
@@ -75,6 +97,7 @@ ListModel.prototype = {
  * events to handle the user interraction.
  */
 function ListView(model, elements) {
+  "use strict";
     this._model = model;
     this._elements = elements;
 
@@ -93,34 +116,41 @@ function ListView(model, elements) {
     });
 
     // attach listeners to HTML controls
-    this._elements.list.change(function (e) {
+    this._elements.list.addEventListener('change',  function (e) {
         _this.listModified.notify({
             index: e.target.selectedIndex
         });
     });
-    this._elements.addButton.click(function () {
+    this._elements.addButton.addEventListener('click', function () {
         _this.addButtonClicked.notify();
     });
-    this._elements.delButton.click(function () {
+    this._elements.delButton.addEventListener('click', function () {
         _this.delButtonClicked.notify();
     });
 }
 
 ListView.prototype = {
     show: function () {
+    "use strict";
         this.rebuildList();
     },
 
     rebuildList: function () {
+    "use strict";
         var list, items, key;
 
         list = this._elements.list;
-        list.html('');
+        // list.html('');
+        __remove_childs('list');
 
+        console.log('list', list);
         items = this._model.getItems();
+        console.log('items', items);
         for (key in items) {
             if (items.hasOwnProperty(key)) {
-                list.append($('<option>' + items[key] + '</option>'));
+              var option = document.createElement('option');
+              option.innerHTML = items[key];
+                list.appendChild(option);
             }
         }
         this._model.setSelectedIndex(-1);
@@ -132,6 +162,7 @@ ListView.prototype = {
  * invokes changes on the model.
  */
 function ListController(model, view) {
+  "use strict";
     this._model = model;
     this._view = view;
 
@@ -152,6 +183,7 @@ function ListController(model, view) {
 
 ListController.prototype = {
     addItem: function () {
+  "use strict";
         var item = window.prompt('Add item:', '');
         if (item) {
             this._model.addItem(item);
@@ -159,6 +191,7 @@ ListController.prototype = {
     },
 
     delItem: function () {
+  "use strict";
         var index;
 
         index = this._model.getSelectedIndex();
@@ -168,18 +201,21 @@ ListController.prototype = {
     },
 
     updateSelected: function (index) {
+  "use strict";
         this._model.setSelectedIndex(index);
     }
 };
 
 var mvc = function() {
+  "use strict";
     var model = new ListModel(['PHP', 'JavaScript']),
         view = new ListView(model, {
-            'list': document.getElementById('#list'),
-                'addButton': document.getElementById('#plusBtn'),
-                'delButton': document.getElementById('#minusBtn')
+            list: document.getElementById('list'),
+            addButton: document.getElementById('plusBtn'),
+            delButton: document.getElementById('minusBtn')
         }),
         controller = new ListController(model, view);
 
     view.show();
+    console.log("controller", controller);
 }();
